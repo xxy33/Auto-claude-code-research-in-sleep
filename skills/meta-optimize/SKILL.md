@@ -197,8 +197,17 @@ Run `/meta-optimize apply 1` to apply a specific change, or
 If user runs `/meta-optimize apply [N]`:
 1. Back up original SKILL.md to `.aris/meta/backups/`
 2. Apply the patch
-3. Log the change to `.aris/meta/optimizations.jsonl`
-4. Remind user to test the changed skill on their next run
+3. **Stamp provenance** (see [`shared-references/skill-governance.md`](../shared-references/skill-governance.md)):
+   `tools/provenance.py stamp <changed-SKILL.md> --author <executor-model>
+   --reviewer <Step-4 reviewer model> --verdict-id <codex thread id from Step 4>`
+   (resolve `provenance.py` via the canonical chain). This records who authored and
+   who acquitted the patch, and **refuses if they are the same model family** — so a
+   patch that never went through Step 4 cross-model review (no valid `verdict_id` /
+   cross-family pair) cannot be recorded as authorized. The stamp is the
+   authorization boundary: only `created_by=aris-auto` artifacts may be touched by a
+   future auto-curator.
+4. Log the change to `.aris/meta/optimizations.jsonl`
+5. Remind user to test the changed skill on their next run
 
 **Never auto-apply without user approval.**
 
