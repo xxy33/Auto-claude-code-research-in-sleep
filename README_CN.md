@@ -987,7 +987,10 @@ NARRATIVE_REPORT.md ──► /paper-plan ──► /paper-figure ──► /pap
 > /research-wiki init     # 一次性初始化，在项目中创建 research-wiki/
 ```
 
-**就这样。** 初始化后自动工作：
+**就这样。** 初始化后自动工作。
+
+<details>
+<summary><b>展开自动触发的 wiki hooks</b> —— /research-lit、/idea-creator、/result-to-claim 各自触发什么，以及重新构思提示</summary>
 
 | 时机 | 发生了什么 | Wiki 操作 |
 |------|-----------|----------|
@@ -996,6 +999,8 @@ NARRATIVE_REPORT.md ──► /paper-plan ──► /paper-figure ──► /pap
 | `/idea-creator` 完成 | 所有 idea 写回 | 推荐的 + 被淘汰的都写 → `ideas/<id>.md` |
 | `/result-to-claim` 判定 | 结果写回 | 实验页面，claim 状态更新（支持/否定） |
 | 3+ idea 失败 | 建议重新构思 | "💡 wiki 已经知道什么不行了，考虑重新 ideate" |
+
+</details>
 
 <details>
 <summary><b>展开 Research Wiki 的数据模型、螺旋上升示例和手动子命令</b> —— 四种实体、3 轮"失败 idea → 更好 idea"演化、ingest/query/lint/stats</summary>

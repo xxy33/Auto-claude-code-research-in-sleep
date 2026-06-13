@@ -1114,7 +1114,10 @@ Without the wiki, ARIS is stateless — every `/idea-discovery` starts from scra
 > /research-wiki init     # one-time, creates research-wiki/ in your project
 ```
 
-**That's it.** Once initialized, the wiki works automatically:
+**That's it.** Once initialized, the wiki works automatically.
+
+<details>
+<summary><b>Show the automatic wiki hooks</b> — what fires at /research-lit, /idea-creator, /result-to-claim, plus the re-ideation nudge</summary>
 
 | When | What happens | Wiki action |
 |------|-------------|-------------|
@@ -1123,6 +1126,8 @@ Without the wiki, ARIS is stateless — every `/idea-discovery` starts from scra
 | `/idea-creator` finishes | ALL ideas written back | Both recommended AND eliminated ideas → `ideas/<id>.md` |
 | `/result-to-claim` judges | Results written back | Experiment page created, claim status updated (supported/invalidated) |
 | 3+ ideas fail | Re-ideation suggested | "💡 Consider re-running /idea-creator — the wiki now knows what doesn't work" |
+
+</details>
 
 <details>
 <summary><b>Show Research Wiki data model</b> — Paper / Idea / Experiment / Claim entities and the typed graph edges that connect them</summary>
