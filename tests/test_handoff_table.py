@@ -1,7 +1,11 @@
 """Tests for handoff_table.py — slug, validate, extract."""
 from __future__ import annotations
 
+import contextlib
+import io
+import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -80,7 +84,6 @@ class TestExtract(unittest.TestCase):
         self.assertEqual(reused["source"], "[Smith'25]")
 
     def test_main_validate_exit_codes(self):
-        import tempfile, os
         fd, path = tempfile.mkstemp(suffix=".md")
         os.write(fd, SAMPLE_TABLE.encode("utf-8"))
         os.close(fd)
@@ -89,3 +92,26 @@ class TestExtract(unittest.TestCase):
             self.assertEqual(ht.main(["validate", path, "--allow-partial"]), 0)
         finally:
             os.unlink(path)
+
+
+class TestCLI(unittest.TestCase):
+    def test_slug_subcommand(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            result = ht.main(["slug", "Some Direction Title"])
+        self.assertEqual(result, 0)
+
+    def test_extract_subcommand(self):
+        fd, path = tempfile.mkstemp(suffix=".md")
+        os.write(fd, SAMPLE_TABLE.encode("utf-8"))
+        os.close(fd)
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                result = ht.main(["extract", path])
+            self.assertEqual(result, 0)
+        finally:
+            os.unlink(path)
+
+    def test_validate_missing_file_returns_2(self):
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            result = ht.main(["validate", "definitely_nonexistent_handoff_xyz.md"])
+        self.assertEqual(result, 2)

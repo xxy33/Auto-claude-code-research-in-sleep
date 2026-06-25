@@ -125,7 +125,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "slug":
         print(slugify(args.direction, args.maxlen))
         return 0
-    text = Path(args.path).read_text(encoding="utf-8")
+    try:
+        text = Path(args.path).read_text(encoding="utf-8")
+    except FileNotFoundError:
+        print(f"error: file not found: {args.path}", file=sys.stderr)
+        return 2
     if args.cmd == "validate":
         res = validate(text)
         print(json.dumps(res, ensure_ascii=False, indent=2))
