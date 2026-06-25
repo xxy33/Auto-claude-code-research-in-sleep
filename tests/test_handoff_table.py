@@ -115,3 +115,15 @@ class TestCLI(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
             result = ht.main(["validate", "definitely_nonexistent_handoff_xyz.md"])
         self.assertEqual(result, 2)
+
+
+class TestTemplate(unittest.TestCase):
+    def test_template_parses_and_has_run_and_reuse(self):
+        tpl = (Path(__file__).resolve().parents[1] / "templates" /
+               "EXPERIMENT_HANDOFF_TEMPLATE.md").read_text(encoding="utf-8")
+        res = ht.validate(tpl)
+        self.assertGreaterEqual(res["n_run"], 1)     # at least one ⬜ row to fill
+        self.assertGreaterEqual(res["n_reuse"], 1)   # at least one cited reuse row
+        self.assertFalse(res["ok"])                  # template ships with unfilled RUN cells
+        for anchor in ["## §1", "## §3", "## §4", "## §7"]:
+            self.assertIn(anchor, tpl)
