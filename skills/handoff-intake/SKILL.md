@@ -54,6 +54,7 @@ python3 "$HANDOFF_TOOL" validate "$HANDOFF"   # add --allow-partial if ALLOW_PAR
 ### Phase 2 — Extract measured results
 
 ```bash
+mkdir -p "$WORKSPACE/refine-logs"
 python3 "$HANDOFF_TOOL" extract "$HANDOFF" > "$WORKSPACE/refine-logs/MEASURED_RESULTS.json"
 ```
 
