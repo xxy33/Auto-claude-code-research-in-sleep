@@ -322,6 +322,7 @@ Ready for Workflow 2:
 ```
 /idea-discovery "direction"          ← Workflow 1: find + refine + plan
 /experiment-bridge                   ← you are here (Workflow 1.5: implement + deploy)
+/experiment-handoff "method"         ← human-run alternative to this bridge (colleague runs experiments)
 /auto-review-loop "topic"            ← Workflow 2: review + iterate
 /paper-writing "NARRATIVE_REPORT.md" ← Workflow 3: write the paper
 

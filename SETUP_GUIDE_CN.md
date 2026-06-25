@@ -227,6 +227,8 @@ research-wiki/
 claude
 > /idea-discovery "你的研究方向"              # 工作流 1 — 方向要具体！不要 "NLP"，要 "离散扩散语言模型的 factorized gap"
 > /experiment-bridge                         # 工作流 1.5 — 有计划了？实现 + 部署 + 收结果
+> /experiment-handoff "方法或方向"                    # 工作流 1.5-H — 规划并生成给同事的实验交接单
+> /handoff-intake "research-projects/<slug>/EXPERIMENT_HANDOFF.md"  # 收回填好的结果 → 写论文
 > /auto-review-loop "你的论文主题或范围"         # 工作流 2：审稿 → 修复 → 再审，一夜完成
 > /paper-writing "NARRATIVE_REPORT.md"       # 工作流 3：研究叙事 → 精修 PDF
 > /rebuttal "paper/ + reviews" — venue: ICML  # 工作流 4：解析 review → 起草 rebuttal → follow-up

@@ -227,6 +227,8 @@ You're now ready to use ARIS research workflows:
 claude
 > /idea-discovery "your research direction"          # Workflow 1 — be specific! not "NLP" but "factorized gap in discrete diffusion LMs"
 > /experiment-bridge                                 # Workflow 1.5 — have a plan? implement + deploy + collect results
+> /experiment-handoff "method or direction"          # Workflow 1.5-H — plan + emit a human handoff package (colleague runs experiments)
+> /handoff-intake "research-projects/<slug>/EXPERIMENT_HANDOFF.md"  # ingest filled results → write paper
 > /auto-review-loop "your paper topic or scope"      # Workflow 2: review → fix → re-review overnight
 > /paper-writing "NARRATIVE_REPORT.md"               # Workflow 3: narrative → polished PDF
 > /rebuttal "paper/ + reviews" — venue: ICML          # Workflow 4: parse reviews → draft rebuttal → follow-up

@@ -245,5 +245,6 @@ Tracker file: refine-logs/EXPERIMENT_TRACKER.md
 /research-refine   -> method and claim refinement
 /experiment-plan   -> detailed experiment roadmap
 /run-experiment    -> execute the runs
+/experiment-handoff   -> package the plan as a human handoff (colleague runs it)
 /auto-review-loop  -> react to results and iterate on the paper
 ```
