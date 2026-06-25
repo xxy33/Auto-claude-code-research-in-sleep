@@ -59,3 +59,33 @@ class TestValidate(unittest.TestCase):
         res = ht.validate(filled)
         self.assertTrue(res["ok"])
         self.assertEqual(res["missing"], [])
+
+
+class TestExtract(unittest.TestCase):
+    def test_extract_drops_predictions_keeps_measured_and_reused(self):
+        out = ht.extract(SAMPLE_TABLE)
+        kinds = sorted(r["kind"] for r in out["results"])
+        self.assertEqual(kinds, ["measured", "reused"])     # the ⬜ RUN row is excluded
+        self.assertEqual(out["dropped_predictions"], 2)      # two RUN rows seen
+        self.assertEqual(len(out["incomplete"]), 1)
+        # GUARDRAIL: no predicted "(pred)" value ever appears as a result value
+        for r in out["results"]:
+            self.assertNotIn("pred", r["value"].lower())
+            self.assertNotIn("~", r["value"])
+
+    def test_reused_value_and_source(self):
+        out = ht.extract(SAMPLE_TABLE)
+        reused = [r for r in out["results"] if r["kind"] == "reused"][0]
+        self.assertEqual(reused["value"], "71.2")
+        self.assertEqual(reused["source"], "[Smith'25]")
+
+    def test_main_validate_exit_codes(self):
+        import tempfile, os
+        fd, path = tempfile.mkstemp(suffix=".md")
+        os.write(fd, SAMPLE_TABLE.encode("utf-8"))
+        os.close(fd)
+        try:
+            self.assertEqual(ht.main(["validate", path]), 1)               # has an empty RUN cell
+            self.assertEqual(ht.main(["validate", path, "--allow-partial"]), 0)
+        finally:
+            os.unlink(path)

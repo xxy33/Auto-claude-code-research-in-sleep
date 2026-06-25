@@ -86,3 +86,55 @@ def validate(md_text: str) -> dict:
                 n_run_filled += 1
     return {"ok": n_run_filled == n_run, "n_run": n_run,
             "n_run_filled": n_run_filled, "n_reuse": n_reuse, "missing": missing}
+
+
+def extract(md_text: str) -> dict:
+    results: list[dict] = []
+    incomplete: list[dict] = []
+    dropped = 0
+    for r in parse_tables(md_text):
+        status = r["status"].strip().lower()
+        actual = r["actual"].strip()
+        is_empty = actual.lower() in EMPTY_ACTUAL
+        base = {"system": r["system"], "benchmark": r["benchmark"],
+                "backbone": r["backbone"], "metric": r["metric"], "source": r["source"]}
+        if status == "reuse":
+            results.append({**base, "value": actual, "kind": "reused"})
+        elif status == "run":
+            dropped += 1  # the predicted Expected is intentionally discarded
+            if is_empty:
+                incomplete.append({**base, "line": r["line"]})
+            else:
+                results.append({**base, "value": actual, "kind": "measured"})
+    return {"results": results, "incomplete": incomplete, "dropped_predictions": dropped}
+
+
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(description="experiment-handoff table helper")
+    sub = p.add_subparsers(dest="cmd", required=True)
+    sp = sub.add_parser("slug")
+    sp.add_argument("direction")
+    sp.add_argument("--maxlen", type=int, default=40)
+    vp = sub.add_parser("validate")
+    vp.add_argument("path")
+    vp.add_argument("--allow-partial", action="store_true")
+    ep = sub.add_parser("extract")
+    ep.add_argument("path")
+    args = p.parse_args(argv)
+
+    if args.cmd == "slug":
+        print(slugify(args.direction, args.maxlen))
+        return 0
+    text = Path(args.path).read_text(encoding="utf-8")
+    if args.cmd == "validate":
+        res = validate(text)
+        print(json.dumps(res, ensure_ascii=False, indent=2))
+        return 0 if (res["ok"] or args.allow_partial) else 1
+    if args.cmd == "extract":
+        print(json.dumps(extract(text), ensure_ascii=False, indent=2))
+        return 0
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
