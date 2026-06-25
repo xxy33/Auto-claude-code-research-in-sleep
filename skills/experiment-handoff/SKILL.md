@@ -42,9 +42,14 @@ HANDOFF_TOOL=".aris/tools/handoff_table.py"
 [ -f "$HANDOFF_TOOL" ] || { [ -n "${ARIS_REPO:-}" ] && HANDOFF_TOOL="$ARIS_REPO/tools/handoff_table.py"; }
 [ -f "$HANDOFF_TOOL" ] || { echo "WARN: handoff_table.py unresolved; deriving slug manually." >&2; HANDOFF_TOOL=""; }
 
+# If the user passed `— slug: <name>`, set SLUG="<name>" before running this block (skips derivation).
 SLUG="${SLUG:-}"
 if [ -z "$SLUG" ] && [ -n "$HANDOFF_TOOL" ]; then
   SLUG=$(python3 "$HANDOFF_TOOL" slug "DIRECTION_TEXT")
+fi
+if [ -z "$SLUG" ]; then
+  echo "ERROR: could not derive a workspace slug; pass it explicitly with — slug: <name>." >&2
+  exit 1
 fi
 WORKSPACE="research-projects/$SLUG"
 mkdir -p "$WORKSPACE/refine-logs"
