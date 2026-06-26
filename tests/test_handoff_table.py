@@ -117,6 +117,72 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(result, 2)
 
 
+class TestPastedPrediction(unittest.TestCase):
+    """Fix 1: a pasted prediction in Actual must not count as a real measured value."""
+
+    PRED_TABLE = """
+| System | Benchmark | Backbone | Metric | Expected | Actual | Status | Source |
+|--------|-----------|----------|--------|----------|--------|--------|--------|
+| Ours | GSM8K | Llama-3-8B | acc | ~74.5 (pred) | ~74.5 (pred) | RUN | — |
+"""
+
+    def test_validate_treats_pasted_prediction_as_unfilled(self):
+        res = ht.validate(self.PRED_TABLE)
+        self.assertFalse(res["ok"])
+        self.assertEqual(res["n_run"], 1)
+        self.assertEqual(res["n_run_filled"], 0)
+        self.assertEqual(len(res["missing"]), 1)
+        self.assertEqual(res["missing"][0]["system"], "Ours")
+
+    def test_extract_routes_pasted_prediction_to_incomplete(self):
+        out = ht.extract(self.PRED_TABLE)
+        # must NOT appear in results
+        self.assertEqual(len(out["results"]), 0)
+        # must land in incomplete
+        self.assertEqual(len(out["incomplete"]), 1)
+        # guardrail: no result value contains pred or ~
+        for r in out["results"]:
+            self.assertNotIn("pred", r["value"].lower())
+            self.assertNotIn("~", r["value"])
+
+
+class TestUnrelatedTable(unittest.TestCase):
+    """parse_tables must ignore tables whose header does not match CANON_HEADER."""
+
+    UNRELATED = """
+| Name | Age |
+|------|-----|
+| Alice | 30 |
+"""
+
+    def test_parse_ignores_unrelated_table(self):
+        rows = ht.parse_tables(self.UNRELATED)
+        self.assertEqual(len(rows), 0)
+
+
+class TestPlaceholderReuse(unittest.TestCase):
+    """Fix 2: REUSE rows with [value] / [val] placeholder must not be emitted."""
+
+    PLACEHOLDER_TABLE = """
+| System | Benchmark | Backbone | Metric | Expected | Actual | Status | Source |
+|--------|-----------|----------|--------|----------|--------|--------|--------|
+| Prior | GSM8K | Llama | acc | 70.0 | [value] | REUSE | [Author'YY] |
+| Prior2 | GSM8K | Llama | acc | 70.0 | [val] | REUSE | [Author'YY] |
+| Ours | GSM8K | Llama | acc | ~74.5 (pred) | 74.5 | RUN | R001 |
+"""
+
+    def test_extract_skips_placeholder_reuse_rows(self):
+        out = ht.extract(self.PLACEHOLDER_TABLE)
+        # placeholder REUSE rows must not appear in results
+        for r in out["results"]:
+            self.assertNotIn("[value]", r["value"])
+            self.assertNotIn("[val]", r["value"])
+        # the real RUN row must still appear as measured
+        kinds = [r["kind"] for r in out["results"]]
+        self.assertIn("measured", kinds)
+        self.assertNotIn("reused", kinds)
+
+
 class TestTemplate(unittest.TestCase):
     def test_template_parses_and_has_run_and_reuse(self):
         tpl = (Path(__file__).resolve().parents[1] / "templates" /
@@ -127,3 +193,10 @@ class TestTemplate(unittest.TestCase):
         self.assertFalse(res["ok"])                  # template ships with unfilled RUN cells
         for anchor in ["## §1", "## §3", "## §4", "## §7"]:
             self.assertIn(anchor, tpl)
+
+    def test_template_ends_with_single_newline(self):
+        tpl_path = (Path(__file__).resolve().parents[1] / "templates" /
+                    "EXPERIMENT_HANDOFF_TEMPLATE.md")
+        raw = tpl_path.read_bytes()
+        self.assertTrue(raw.endswith(b"\n"), "template must end with a newline")
+        self.assertFalse(raw.endswith(b"\n\n"), "template must not end with two newlines")

@@ -31,7 +31,13 @@ def slugify(direction: str, maxlen: int = 40) -> str:
 
 CANON_HEADER = ["system", "benchmark", "backbone", "metric",
                 "expected", "actual", "status", "source"]
-EMPTY_ACTUAL = {"", "⬜", "todo", "tbd", "-", "—", "n/a", "..."}
+EMPTY_ACTUAL = {"", "⬜", "todo", "tbd", "-", "—", "n/a", "...", "[value]", "[val]"}
+
+
+def _looks_like_prediction(value: str) -> bool:
+    """A measured Actual must not be a leftover prediction (e.g. '~74.5 (pred)')."""
+    v = value.strip().lower()
+    return "(pred)" in v or v.startswith("~")
 
 
 def _split_row(line: str) -> list[str]:
@@ -74,12 +80,14 @@ def validate(md_text: str) -> dict:
     missing: list[dict] = []
     for r in parse_tables(md_text):
         status = r["status"].strip().lower()
-        is_empty = r["actual"].strip().lower() in EMPTY_ACTUAL
+        actual = r["actual"].strip()
+        is_empty = actual.lower() in EMPTY_ACTUAL
+        is_pred = _looks_like_prediction(actual)
         if status == "reuse":
             n_reuse += 1
         elif status == "run":
             n_run += 1
-            if is_empty:
+            if is_empty or is_pred:
                 missing.append({"system": r["system"], "benchmark": r["benchmark"],
                                 "metric": r["metric"], "line": r["line"]})
             else:
@@ -99,10 +107,13 @@ def extract(md_text: str) -> dict:
         base = {"system": r["system"], "benchmark": r["benchmark"],
                 "backbone": r["backbone"], "metric": r["metric"], "source": r["source"]}
         if status == "reuse":
-            results.append({**base, "value": actual, "kind": "reused"})
+            # Fix 2: skip unfilled placeholder reuse rows entirely
+            if not is_empty:
+                results.append({**base, "value": actual, "kind": "reused"})
         elif status == "run":
             dropped += 1  # the predicted Expected is intentionally discarded
-            if is_empty:
+            if is_empty or _looks_like_prediction(actual):
+                # Fix 1: prediction-looking actual routes to incomplete, not measured
                 incomplete.append({**base, "line": r["line"]})
             else:
                 results.append({**base, "value": actual, "kind": "measured"})
