@@ -121,6 +121,12 @@ def extract(md_text: str) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Handoff files contain non-ASCII (−, ², ⬜, …); force UTF-8 stdout so
+    # printing JSON does not crash on a legacy console codepage (e.g. Windows gbk).
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+    except (AttributeError, ValueError):  # pragma: no cover - non-reconfigurable stream
+        pass
     p = argparse.ArgumentParser(description="experiment-handoff table helper")
     sub = p.add_subparsers(dest="cmd", required=True)
     sp = sub.add_parser("slug")
